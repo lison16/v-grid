@@ -96,6 +96,8 @@
                     h: 0,
                     i: -1
                 },
+                draggingId: '',
+                needUpdateLayout: true
             };
         },
         created () {
@@ -114,6 +116,8 @@
             self.eventBus = self._provided.eventBus;
             self.eventBus.$on('resizeEvent', self.resizeEventHandler);
             self.eventBus.$on('dragEvent', self.dragEventHandler);
+            self.eventBus.$on('currentIdChange', self.setCurrentId);
+            self.eventBus.$on('changeNeedUpdateLayout', self.setNeedUpdateLayout);
         },
         beforeDestroy: function(){
             //Remove listeners
@@ -240,12 +244,24 @@
                 l.x = x;
                 l.y = y;
                 // Move the element to the dragged location.
-                this.layout = moveElement(this.layout, l, x, y, true);
-                compact(this.layout, this.verticalCompact);
+
+
+
+                if (this.needUpdateLayout) this.updateLayout(l, x, y)
+
+
                 // needed because vue can't detect changes on array element properties
                 this.eventBus.$emit("compact");
                 this.updateHeight();
-                if (eventName === 'dragend') this.$emit('layout-updated', this.layout);
+                if (eventName === 'dragend') {
+                    
+                    this.$emit('layout-updated', this.layout);
+                }
+            },
+            updateLayout (l, x, y) {
+                // @TODO: 
+                this.layout = moveElement(this.layout, l, x, y, true);
+                compact(this.layout, this.verticalCompact);
             },
             resizeEvent: function (eventName, id, x, y, h, w) {
                 if (eventName === "resizestart" || eventName === "resizemove") {
@@ -277,6 +293,13 @@
                 this.updateHeight();
                 if (eventName === 'resizeend') this.$emit('layout-updated', this.layout);
             },
+            setCurrentId (id) {
+                this.$emit('dragging-id-change', id)
+                this.draggingId = id
+            },
+            setNeedUpdateLayout (statu) {
+                this.needUpdateLayout = statu;
+            }
         },
     }
 </script>

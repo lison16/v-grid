@@ -6,15 +6,7 @@
             <div class="layoutJSON">
                 Displayed as <code>[x, y, w, h]</code>:
                 <div class="columns">
-                    <div class="layoutItem" v-for="item in layout">
-                        <b>{{item.i}}</b>: [{{item.x}}, {{item.y}}, {{item.w}}, {{item.h}}]
-                    </div>
-                </div>
-            </div>
-            <div class="layoutJSON">
-                Displayed as <code>[x, y, w, h]</code>:
-                <div class="columns">
-                    <div class="layoutItem" v-for="item in layout2">
+                    <div class="layoutItem" :key="item.i" v-for="item in layout">
                         <b>{{item.i}}</b>: [{{item.x}}, {{item.y}}, {{item.w}}, {{item.h}}]
                     </div>
                 </div>
@@ -41,21 +33,25 @@
                     :is-mirrored="mirrored"
                     :vertical-compact="true"
                     :use-css-transforms="true"
+                    @dragging-id-change="handleDraggingIdChange"
             >
                 <grid-item v-for="item in layout" :key="item.i"
                            :x="item.x"
                            :y="item.y"
                            :w="item.w"
                            :h="item.h"
-                           :min-w="2"
-                           :min-h="2"
+                           :min-w="1"
+                           :min-h="1"
                            :i="item.i"
+                           :can-drop="item.type === currentLayoutObj.type"
                            @resize="resize"
                            @move="move"
                            @resized="resized"
                            @moved="moved"
+                           @on-drop-end="handleDropEnd"
                 >
                     <!--<custom-drag-element :text="item.i"></custom-drag-element>-->
+                    <span class="type-tip">{{ item.type }}</span>
                     <test-element :text="item.i"></test-element>
                     <!--<button @click="clicked">CLICK ME!</button>-->
                 </grid-item>
@@ -97,26 +93,26 @@
     //var eventBus = require('./eventBus');
 
     var testLayout = [
-        {"x":0,"y":0,"w":2,"h":2,"i":"0", resizable: true, draggable: true},
-        {"x":2,"y":0,"w":2,"h":4,"i":"1", resizable: null, draggable: null},
-        {"x":4,"y":0,"w":2,"h":5,"i":"2", resizable: false, draggable: false},
-        {"x":6,"y":0,"w":2,"h":3,"i":"3", resizable: false, draggable: false},
-        {"x":8,"y":0,"w":2,"h":3,"i":"4", resizable: false, draggable: false},
-        {"x":10,"y":0,"w":2,"h":3,"i":"5", resizable: false, draggable: false},
-        {"x":0,"y":5,"w":2,"h":5,"i":"6", resizable: false, draggable: false},
-        {"x":2,"y":5,"w":2,"h":5,"i":"7", resizable: false, draggable: false},
-        {"x":4,"y":5,"w":2,"h":5,"i":"8", resizable: false, draggable: false},
-        {"x":6,"y":4,"w":2,"h":4,"i":"9", resizable: false, draggable: false},
-        {"x":8,"y":4,"w":2,"h":4,"i":"10", resizable: false, draggable: false},
-        {"x":10,"y":4,"w":2,"h":4,"i":"11", resizable: false, draggable: false},
-        {"x":0,"y":10,"w":2,"h":5,"i":"12", resizable: false, draggable: false},
-        {"x":2,"y":10,"w":2,"h":5,"i":"13", resizable: false, draggable: false},
-        {"x":4,"y":8,"w":2,"h":4,"i":"14", resizable: false, draggable: false},
-        {"x":6,"y":8,"w":2,"h":4,"i":"15", resizable: false, draggable: false},
-        {"x":8,"y":10,"w":2,"h":5,"i":"16", resizable: false, draggable: false},
-        {"x":10,"y":4,"w":2,"h":2,"i":"17", resizable: false, draggable: false},
-        {"x":0,"y":9,"w":2,"h":3,"i":"18", resizable: false, draggable: false},
-        {"x":2,"y":6,"w":2,"h":2,"i":"19", resizable: false, draggable: false}
+        {"x":0,"y":0,"w":2,"h":2,"i":"0", resizable: true, draggable: true, type: 'a'},
+        {"x":2,"y":0,"w":2,"h":4,"i":"1", resizable: null, draggable: null, type: 'b'},
+        {"x":4,"y":0,"w":2,"h":5,"i":"2", resizable: false, draggable: false, type: 'a'},
+        {"x":6,"y":0,"w":2,"h":3,"i":"3", resizable: false, draggable: false, type: 'c'},
+        {"x":8,"y":0,"w":2,"h":3,"i":"4", resizable: false, draggable: false, type: 'd'},
+        {"x":10,"y":0,"w":2,"h":3,"i":"5", resizable: false, draggable: false, type: 'a'},
+        {"x":0,"y":5,"w":2,"h":5,"i":"6", resizable: false, draggable: false, type: 'b'},
+        {"x":2,"y":5,"w":2,"h":5,"i":"7", resizable: false, draggable: false, type: 'c'},
+        // {"x":4,"y":5,"w":2,"h":5,"i":"8", resizable: false, draggable: false},
+        // {"x":6,"y":4,"w":2,"h":4,"i":"9", resizable: false, draggable: false},
+        // {"x":8,"y":4,"w":2,"h":4,"i":"10", resizable: false, draggable: false},
+        // {"x":10,"y":4,"w":2,"h":4,"i":"11", resizable: false, draggable: false},
+        // {"x":0,"y":10,"w":2,"h":5,"i":"12", resizable: false, draggable: false},
+        // {"x":2,"y":10,"w":2,"h":5,"i":"13", resizable: false, draggable: false},
+        // {"x":4,"y":8,"w":2,"h":4,"i":"14", resizable: false, draggable: false},
+        // {"x":6,"y":8,"w":2,"h":4,"i":"15", resizable: false, draggable: false},
+        // {"x":8,"y":10,"w":2,"h":5,"i":"16", resizable: false, draggable: false},
+        // {"x":10,"y":4,"w":2,"h":2,"i":"17", resizable: false, draggable: false},
+        // {"x":0,"y":9,"w":2,"h":3,"i":"18", resizable: false, draggable: false},
+        // {"x":2,"y":6,"w":2,"h":2,"i":"19", resizable: false, draggable: false}
     ];
 
     export default {
@@ -135,9 +131,10 @@
                 draggable: true,
                 resizable: true,
                 mirrored: false,
-                rowHeight: 30,
+                rowHeight: 50,
                 colNum: 12,
-                index: 0
+                index: 0,
+                currentLayoutObj: {}
             }
         },
         mounted: function () {
@@ -170,16 +167,16 @@
                 this.layout.push(item);
             },
             move: function(i, newX, newY){
-                console.log("MOVE i=" + i + ", X=" + newX + ", Y=" + newY);
+                // console.log("MOVE i=" + i + ", X=" + newX + ", Y=" + newY);
             },
             resize: function(i, newH, newW){
-                console.log("RESIZE i=" + i + ", H=" + newH + ", W=" + newW);
+                // console.log("RESIZE i=" + i + ", H=" + newH + ", W=" + newW);
             },
             moved: function(i, newX, newY){
-                console.log("### MOVED i=" + i + ", X=" + newX + ", Y=" + newY);
+                // console.log("### MOVED i=" + i + ", X=" + newX + ", Y=" + newY);
             },
             resized: function(i, newH, newW, newHPx, newWPx){
-                console.log("### RESIZED i=" + i + ", H=" + newH + ", W=" + newW + ", H(px)=" + newHPx + ", W(px)=" + newWPx);
+                // console.log("### RESIZED i=" + i + ", H=" + newH + ", W=" + newW + ", H(px)=" + newHPx + ", W(px)=" + newWPx);
             },
             /**
              * Add change direction button
@@ -197,12 +194,21 @@
                 var html = document.getElementsByTagName("html")[0];
                 html.setAttribute("dir", toggle);
                 //eventBus.$emit('directionchange');
+            },
+            handleDraggingIdChange (id) {
+                this.currentLayoutObj = this.layout.find(item => item.i === id)
+            },
+            handleDropEnd (id) {
+                console.log(`合并了 ${this.currentLayoutObj.i} 和 ${id}`)
             }
         },
     }
 </script>
 
 <style>
+.type-tip{
+    color: red;
+}
 /*    #app {
         font-family: 'Avenir', Helvetica, Arial, sans-serif;
         -webkit-font-smoothing: antialiased;

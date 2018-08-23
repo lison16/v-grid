@@ -1,8 +1,10 @@
 <template>
     <div ref="item"
          class="vue-grid-item"
+         :id="itemId"
          :class="{ 'vue-resizable' : resizable, 'resizing' : isResizing, 'vue-draggable-dragging' : isDragging, 'cssTransforms' : useCssTransforms, 'render-rtl' : renderRtl, 'disable-userselect': isDragging }"
          :style="style"
+         @mousedown="handleMousedown"
     >
         <slot></slot>
         <span v-if="resizable" ref="handle" :class="resizableHandleClass"></span>
@@ -78,6 +80,36 @@
     
     .vue-grid-item.disable-userselect {
         user-select: none;
+    }
+
+    .drop-active {
+        border-color: #aaa;
+    }
+
+    .drop-target {
+        background-color: #29e;
+        border-color: #fff;
+        border-style: solid;
+    }
+
+    .vue-grid-item {
+        /* display: inline-block;
+        min-width: 40px;
+        padding: 2em 0.5em;
+
+        color: #fff;
+        background-color: #29e;
+        border: solid 2px #fff;
+
+        -webkit-transform: translate(0px, 0px);
+                transform: translate(0px, 0px);
+
+        transition: background-color 0.3s; */
+    }
+
+    .vue-grid-item.can-drop {
+        color: #000;
+        background-color: #4e4;
     }
 </style>
 <script>
@@ -185,6 +217,10 @@
                 required: false,
                 default: 'a, button'
             },
+            canDrop: {
+                type: Boolean,
+                default: true
+            }
         },
         inject: ["eventBus"],
         data: function () {
@@ -334,6 +370,46 @@
                     });
                 }
             },
+            currentDraggingId (newVal) {
+                const isPlaceholder = Array.from(this.$refs.item.classList).indexOf('vue-grid-placeholder') > -1
+                if (newVal !== this.itemId && !isPlaceholder && this.canDrop) this.interactObj.dropzone({
+                    accept: `#${newVal}`,
+                    overlap: 0.2,
+                    ondropactivate: function (event) {
+                        // add active dropzone feedback
+                        event.target.classList.add('drop-active');
+                    },
+                    ondragenter: (event) => {
+                        var draggableElement = event.relatedTarget,
+                            dropzoneElement = event.target;
+                        this.eventBus.$emit("changeNeedUpdateLayout", false)
+
+                        // feedback the possibility of a drop
+                        dropzoneElement.classList.add('drop-target');
+                        draggableElement.classList.add('can-drop');
+                        // draggableElement.textContent = 'Dragged in';
+                    },
+                    ondragleave: (event) => {
+                        // remove the drop feedback style
+                        event.target.classList.remove('drop-target');
+                        event.relatedTarget.classList.remove('can-drop');
+                        console.log('dragleave===')
+                        this.eventBus.$emit("changeNeedUpdateLayout", true)
+                        // event.relatedTarget.textContent = 'Dragged out';
+                    },
+                    ondrop: (event) => {
+                        console.log('ondrop===')
+                        this.$emit('on-drop-end', this.i)
+                        this.eventBus.$emit("changeNeedUpdateLayout", true)
+                        // event.relatedTarget.textContent = 'Dropped';
+                    },
+                    ondropdeactivate: function (event) {
+                        // remove active dropzone feedback
+                        event.target.classList.remove('drop-active');
+                        event.target.classList.remove('drop-target');
+                    }
+                })
+            },
             isResizable: function () {
                 this.resizable = this.isResizable;
             },
@@ -407,9 +483,18 @@
                 } else {
                     return 'vue-resizable-handle';
                 }
+            },
+            currentDraggingId () {
+                return `gridItem${this.$parent.draggingId}`
+            },
+            itemId () {
+                return `gridItem${this.i}`
             }
         },
         methods: {
+            handleMousedown () {
+                this.eventBus.$emit('currentIdChange', this.i)
+            },
             createStyle: function () {
                 if (this.x + this.w > this.cols) {
                     this.innerX = 0;
@@ -541,6 +626,7 @@
 
                 var shouldUpdate = false;
                 const newPosition = {top: 0, left: 0};
+                // this.eventBus.$emit('currentIdChange', this.i)
                 switch (event.type) {
                     case "dragstart":
                         this.previousX = this.innerX;
@@ -573,6 +659,13 @@
                         this.dragging = null;
                         this.isDragging = false;
                         shouldUpdate = true;
+                        this.interactObj.options.drop = {
+                            accept: null,
+                            enabled: false,
+                            overlap: 'pointer'
+                        }
+                        console.log('moveend===')
+                        // this.eventBus.$emit("changeNeedUpdateLayout", true)
                         break;
                     case "dragmove":
                         const coreEvent = createCoreData(this.lastX, this.lastY, x, y);
@@ -606,6 +699,7 @@
                 if (event.type === "dragend" && (this.previousX !== this.innerX || this.previousY !== this.innerY)) {
                     this.$emit("moved", this.i, pos.x, pos.y);
                 }
+                // console.log(this.canDrop, this.i)
                 this.eventBus.$emit("dragEvent", event.type, this.i, pos.x, pos.y, this.innerH, this.innerW);
             },
             calcPosition: function (x, y, w, h) {
@@ -698,6 +792,6 @@
             compact: function () {
                 this.createStyle();
             }
-        },
+        }
     }
 </script>
