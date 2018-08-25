@@ -219,7 +219,7 @@
             },
             canDrop: {
                 type: Boolean,
-                default: true
+                default: false
             }
         },
         inject: ["eventBus"],

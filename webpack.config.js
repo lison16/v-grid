@@ -55,7 +55,15 @@ module.exports = {
     },
     devtool: '#eval-source-map',
     plugins: [
-      new webpack.HotModuleReplacementPlugin()
+        new webpack.HotModuleReplacementPlugin(),
+        new webpack.optimize.UglifyJsPlugin({
+            compress: {
+                warnings: false,
+                drop_debugger: true,
+                drop_console: true
+            },
+            sourceMap: true
+        })
     ]
 }
 

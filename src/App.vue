@@ -34,6 +34,7 @@
                     :vertical-compact="true"
                     :use-css-transforms="true"
                     @dragging-id-change="handleDraggingIdChange"
+                    @layout-updated="handleLayoutUpdated"
             >
                 <grid-item v-for="item in layout" :key="item.i"
                            :x="item.x"
@@ -200,6 +201,9 @@
             },
             handleDropEnd (id) {
                 console.log(`合并了 ${this.currentLayoutObj.i} 和 ${id}`)
+            },
+            handleLayoutUpdated (layout) {
+                console.log(layout)
             }
         },
     }
