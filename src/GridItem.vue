@@ -220,6 +220,14 @@
             canDrop: {
                 type: Boolean,
                 default: false
+            },
+            isPlaceholder: {
+                type: Boolean,
+                default: false
+            },
+            dropOverlap: {
+                type: Number,
+                default: 0.01
             }
         },
         inject: ["eventBus"],
@@ -229,6 +237,8 @@
                 containerWidth: 100,
                 rowHeight: 30,
                 margin: [10, 10],
+
+
                 maxRows: Infinity,
                 draggable: null,
                 resizable: null,
@@ -343,6 +353,11 @@
             this.createStyle();
         },
         watch: {
+            '$parent.margin' (margin) {
+                // console.log(margin)
+                this.margin = margin !== undefined ? margin : [10, 10];
+                this.createStyle();
+            },
             isDraggable: function () {
                 this.draggable = this.isDraggable;
             },
@@ -371,10 +386,10 @@
                 }
             },
             currentDraggingId (newVal) {
-                const isPlaceholder = Array.from(this.$refs.item.classList).indexOf('vue-grid-placeholder') > -1
+                const isPlaceholder = this.isPlaceholder
                 if (newVal !== this.itemId && !isPlaceholder && this.canDrop) this.interactObj.dropzone({
                     accept: `#${newVal}`,
-                    overlap: 0.2,
+                    overlap: this.dropOverlap,
                     ondropactivate: function (event) {
                         // add active dropzone feedback
                         event.target.classList.add('drop-active');
@@ -488,7 +503,7 @@
                 return `gridItem${this.$parent.draggingId}`
             },
             itemId () {
-                return `gridItem${this.i}`
+                return this.isPlaceholder ? '' : `gridItem${this.i}`
             }
         },
         methods: {

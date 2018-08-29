@@ -22,7 +22,7 @@
             <input type="checkbox" v-model="resizable"/> Resizable
             <input type="checkbox" v-model="mirrored"/> Mirrored
             <br/>
-            Row Height: <input type="number" v-model="rowHeight"/> Col nums: <input type="number" v-model="colNum"/>
+            Row Height: <input type="number" v-model.number="rowHeight"/> Col nums: <input type="number" v-model="colNum"/> margin: <button @click="changMargin('up')">增加边距</button><button @click="changMargin('down')">减少边距</button>
             <br/>
             <grid-layout
                     :layout="layout"
@@ -32,7 +32,8 @@
                     :is-resizable="resizable"
                     :is-mirrored="mirrored"
                     :vertical-compact="true"
-                    :use-css-transforms="true"
+                    :margin="marginArr"
+                    :use-css-transforms="false"
                     @dragging-id-change="handleDraggingIdChange"
                     @layout-updated="handleLayoutUpdated"
             >
@@ -132,10 +133,16 @@
                 draggable: true,
                 resizable: true,
                 mirrored: false,
-                rowHeight: 50,
+                rowHeight: 30,
                 colNum: 12,
                 index: 0,
-                currentLayoutObj: {}
+                currentLayoutObj: {},
+                margin: 10
+            }
+        },
+        computed: {
+            marginArr () {
+                return [this.margin, this.margin]
             }
         },
         mounted: function () {
@@ -203,7 +210,11 @@
                 console.log(`合并了 ${this.currentLayoutObj.i} 和 ${id}`)
             },
             handleLayoutUpdated (layout) {
-                console.log(layout)
+                console.log('更新了....', layout)
+            },
+            changMargin (type) {
+                if (type === 'up') this.margin++
+                else this.margin--
             }
         },
     }

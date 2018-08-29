@@ -2,12 +2,13 @@
     <div ref="item" class="vue-grid-layout" :style="mergedStyle">
         <slot></slot>
         <grid-item class="vue-grid-placeholder"
-                   v-show="isDragging"
-                   :x="placeholder.x"
-                   :y="placeholder.y"
-                   :w="placeholder.w"
-                   :h="placeholder.h"
-                   :i="placeholder.i"></grid-item>
+            is-placeholder
+            v-show="isDragging"
+            :x="placeholder.x"
+            :y="placeholder.y"
+            :w="placeholder.w"
+            :h="placeholder.h"
+            :i="placeholder.i"></grid-item>
     </div>
 </template>
 <style>
@@ -190,6 +191,10 @@
             },
             isResizable: function() {
                 this.eventBus.$emit("setResizable", this.isResizable);
+            },
+            margin (val) {
+                console.log(val)
+                // compact(this.layout, this.verticalCompact);
             }
         },
         methods: {
@@ -245,9 +250,8 @@
                 l.y = y;
                 // Move the element to the dragged location.
 
-
-
                 if (this.needUpdateLayout) this.updateLayout(l, x, y)
+
 
 
                 // needed because vue can't detect changes on array element properties
