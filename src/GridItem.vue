@@ -358,6 +358,11 @@
                 this.margin = margin !== undefined ? margin : [10, 10];
                 this.createStyle();
             },
+            '$parent.maxRows' (maxRows) {
+                console.log(maxRows)
+                this.maxRows = maxRows;
+                this.createStyle();
+            },
             isDraggable: function () {
                 this.draggable = this.isDraggable;
             },

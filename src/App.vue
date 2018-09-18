@@ -23,6 +23,7 @@
             <input type="checkbox" v-model="mirrored"/> Mirrored
             <br/>
             Row Height: <input type="number" v-model.number="rowHeight"/> Col nums: <input type="number" v-model="colNum"/> margin: <button @click="changMargin('up')">增加边距</button><button @click="changMargin('down')">减少边距</button>
+            maxRows: <input type="number" v-model.number="maxRows"/>
             <br/>
             <grid-layout
                     :layout="layout"
@@ -34,6 +35,7 @@
                     :vertical-compact="true"
                     :margin="marginArr"
                     :use-css-transforms="false"
+                    :max-rows="maxRows"
                     @dragging-id-change="handleDraggingIdChange"
                     @layout-updated="handleLayoutUpdated"
             >
@@ -137,7 +139,8 @@
                 colNum: 12,
                 index: 0,
                 currentLayoutObj: {},
-                margin: 10
+                margin: 10,
+                maxRows: 4
             }
         },
         computed: {
